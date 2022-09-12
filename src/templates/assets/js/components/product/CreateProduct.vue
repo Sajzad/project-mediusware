@@ -24,7 +24,14 @@
             <h6 class="m-0 font-weight-bold text-primary">Media</h6>
           </div>
           <div class="card-body border">
-            <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"></vue-dropzone>
+            <vue-dropzone 
+              ref="myVueDropzone" 
+              id="dropzone"
+              @vdropzone-sending = addParams
+              @vdropzone-success = completeUploading
+              @vdropzone-error = errorHandler
+              :options="dropzoneOptions">
+            </vue-dropzone>
           </div>
         </div>
       </div>
@@ -127,7 +134,9 @@ export default {
       ],
       product_variant_prices: [],
       dropzoneOptions: {
-        url: 'https://httpbin.org/post',
+        url: '/product/create',
+        autoProcessQueue: false,
+        paramName: 'image',
         thumbnailWidth: 150,
         maxFilesize: 0.5,
         headers: {"My-Awesome-Header": "header value"}
@@ -140,7 +149,7 @@ export default {
       let all_variants = this.variants.map(el => el.id)
       let selected_variants = this.product_variant.map(el => el.option);
       let available_variants = all_variants.filter(entry1 => !selected_variants.some(entry2 => entry1 == entry2))
-      // console.log(available_variants)
+      console.log(available_variants)
 
       this.product_variant.push({
         option: available_variants[0],
@@ -178,25 +187,47 @@ export default {
       return ans;
     },
 
+    addParams(file, xhr, formData){
+      formData.append('title', this.product_name)
+      formData.append('sku', this.product_sku)
+      formData.append('description', this.description)
+      formData.append('product_variant', JSON.stringify(this.product_variant))
+      formData.append('product_variant_prices', JSON.stringify(this.product_variant_prices))
+    },
     // store product into database
     saveProduct() {
-      let product = {
-        title: this.product_name,
-        sku: this.product_sku,
-        description: this.description,
-        product_image: this.images,
-        product_variant: this.product_variant,
-        product_variant_prices: this.product_variant_prices
+      // let product = {
+      //   title: this.product_name,
+      //   sku: this.product_sku,
+      //   description: this.description,
+      //   product_variant: this.product_variant,
+      //   product_variant_prices: this.product_variant_prices
+      // }
+      if (this.product_name != ''){
+        this.$refs.myVueDropzone.processQueue();
+      }else{
+        alert("Please insert product name!")
       }
 
+      // axios.post('/product/create', product).then(response => {
+      //   console.log(response.data);
+      // }).catch(error => {
+      //   console.log(error);
+      // })
 
-      axios.post('/product', product).then(response => {
-        console.log(response.data);
-      }).catch(error => {
-        console.log(error);
-      })
+      // console.log(product);
+    },
+    completeUploading(file, response){
+      console.log(response)
+      location.reload();
 
-      console.log(product);
+    },
+    errorHandler(file, message, xhr){
+      alert(message.error)
+    },
+
+    imageUpload(){
+      console.log("image upload")
     }
 
 

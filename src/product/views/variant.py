@@ -32,7 +32,6 @@ class VariantView(BaseVariantView, ListView):
             context['request'] = self.request.GET['title__icontains']
         return context
 
-
 class VariantCreateView(BaseVariantView, CreateView):
     pass
 
